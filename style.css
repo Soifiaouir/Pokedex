@@ -1,0 +1,62 @@
+body {
+    padding: 0%;
+    margin: 0%;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    background-color:black;
+    margin: 0;
+    font-family: Arial, sans-serif;
+  }
+  
+  h1{
+    font-family: 'Pokemon Solid', sans-serif;
+    color: yellow; 
+    font-size: 5em;        
+    padding: 0%;
+    margin: 0%;                                 
+  }
+
+ 
+   .pokedex{
+    background-image: url(img/gameboy.svg);
+    background-size: cover; /* Ajustement pour couvrir toute la surface */
+    background-repeat: no-repeat; /* Empêche la répétition de l'image */
+    width: 80%;
+    height: auto;
+   }
+
+   .screen {
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 0%;
+    }
+
+  .nav-button {
+    width: 50px; /* Ajustez la taille des boutons selon vos besoins */
+    height: auto;
+    cursor: pointer;
+  }
+  
+  #pokemon-details {
+    text-align: center;
+    padding-top: 5%;
+    color: antiquewhite;
+  }
+  #pokemon-details img {
+    width: 200px; /* Taille de l'image */
+    height: auto; /* Conserve le rapport d'aspect */
+    display: block; /* Pour s'assurer que l'image se comporte comme un bloc */
+   padding-top: 30%;
+  }
+  #pokemon-details h3 {
+    margin: 5px 0; /* Réduit l'espace au-dessus et en dessous du titre */
+  }
+  
+  #pokemon-details p {
+    margin: 3px 0; /* Réduit l'espace au-dessus et en dessous des paragraphes */
+  }
