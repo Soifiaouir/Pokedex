@@ -2,9 +2,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const generation = 1;
   let currentIndex = 0;
   let pokemonData = [];
-  let filteredPokemonData = []; /* tableau fitltr*/
+  let filteredPokemonData = [];
 
-  const prevBtn = document.getElementById('prev-btn');/* appel les différents éléments dans le html*/
+  const prevBtn = document.getElementById('prev-btn');
   const nextBtn = document.getElementById('next-btn');
   const pokemonDetails = document.getElementById('pokemon-details');
   const searchBar = document.getElementById('search-bar');
@@ -12,43 +12,50 @@ document.addEventListener('DOMContentLoaded', () => {
 
   searchBtn.addEventListener('click', () => {
     const query = searchBar.value.trim().toLowerCase();
-    filteredPokemonData = pokemonData.filter(pokemon => { /* Filtrage par nom*/
-      const nameMatch = pokemon.name.toLowerCase().includes(query); /* Filtrage par ID (conversion de l'ID en string pour comparaison)*/
+    filteredPokemonData = pokemonData.filter(pokemon => {
+      const nameMatch = pokemon.names.some(nameEntry => nameEntry.language.name === 'fr' && nameEntry.name.toLowerCase().includes(query));
       const idMatch = pokemon.id.toString().includes(query);
       return nameMatch || idMatch;
     });
-    currentIndex = 0; /*met la valeur au pokémon id 1 (le plue proche de 0)*/ 
-    if (filteredPokemonData.length > 0) { /*met en place la condition du retout de pokémon  ou non */
+    currentIndex = 0;
+    if (filteredPokemonData.length > 0) {
       displayPokemon(filteredPokemonData[currentIndex]);
     } else {
       pokemonDetails.innerHTML = '<p>Aucun Pokémon trouvé</p>';
     }
   });
 
-  prevBtn.addEventListener('click', () => {/*permet de changer de pokémon de un en un vers la droite*/
+  prevBtn.addEventListener('click', () => {
     if (currentIndex > 0) {
       currentIndex--;
-      displayPokemon(pokemonData[currentIndex]);
+      displayPokemon(filteredPokemonData.length > 0 ? filteredPokemonData[currentIndex] : pokemonData[currentIndex]);
     }
   });
 
-  nextBtn.addEventListener('click', () => {/*permet de changer de pokémon de un en un vers la gauche*/
-    if (currentIndex < pokemonData.length - 1) {
+  nextBtn.addEventListener('click', () => {
+    if (currentIndex < (filteredPokemonData.length > 0 ? filteredPokemonData.length - 1 : pokemonData.length - 1)) {
       currentIndex++;
-      displayPokemon(pokemonData[currentIndex]);
+      displayPokemon(filteredPokemonData.length > 0 ? filteredPokemonData[currentIndex] : pokemonData[currentIndex]);
     }
   });
 
-  fetch(`https://pokeapi.co/api/v2/generation/${generation}`)/* permet de récuper l'API pokémon le version voulue */
+  fetch(`https://pokeapi.co/api/v2/generation/${generation}`)
     .then(response => response.json())
     .then(data => {
-      const pokemonUrls = data.pokemon_species.slice(0, 150).map(pokemon => `https://pokeapi.co/api/v2/pokemon/${pokemon.name}`);
+      const pokemonUrls = data.pokemon_species.slice(0, 150).map(pokemon => pokemon.url);
 
       Promise.all(pokemonUrls.map(url =>
         fetch(url).then(response => response.json())
       ))
       .then(data => {
-        pokemonData = data;
+        pokemonData = data.map(pokemon => ({
+          id: pokemon.id,
+          names: pokemon.names,
+          sprites: pokemon.sprites,
+          types: pokemon.types,
+          weight: pokemon.weight,
+          height: pokemon.height
+        }));
         displayPokemon(pokemonData[currentIndex]);
       })
       .catch(error => {
@@ -60,9 +67,11 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
   function displayPokemon(pokemon) {
+    const nameEntry = pokemon.names.find(nameEntry => nameEntry.language.name === 'fr');
+    const frenchName = nameEntry ? nameEntry.name : pokemon.name;
     pokemonDetails.innerHTML = `
-      <img src="${pokemon.sprites.front_default}" alt="${pokemon.name}" >
-      <h3>${pokemon.name}</h3>
+      <img src="${pokemon.sprites.front_default}" alt="${frenchName}" >
+      <h3>${frenchName}</h3>
       <p>ID: ${pokemon.id}</p>
       <p>Type: ${pokemon.types.map(type => type.type.name).join(', ')}</p>
       <p>Poids: ${pokemon.weight / 10} kg</p>
