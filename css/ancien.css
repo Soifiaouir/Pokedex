@@ -21,7 +21,6 @@ body {
 
  
    .pokedex{
-    background-image: url(img/gameboy.svg);
     background-size: cover; 
     background-repeat: no-repeat; 
     width: 80%;

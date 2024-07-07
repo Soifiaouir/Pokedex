@@ -1,0 +1,46 @@
+body{
+    padding: 0%;
+    margin: 0%;
+    background-color:rgb(60, 110, 245);
+    width: 100%;
+    display:flex ;
+    flex-direction: column;
+    align-items: center;
+}
+
+
+
+    h1{
+        font-family: 'Pokemon Solid';
+        color: rgb(231, 216, 216);
+       
+        
+}
+
+main{
+    margin-left: 10%;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    width: 90%;
+}
+
+    h2{
+        color: bisque;
+}
+
+    .acceuil{
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        
+
+        padding: 0%;
+        margin: 0%;
+}
+
+    .generation{
+        padding: 0%;
+        height: 50%;
+        width:auto;
+    }

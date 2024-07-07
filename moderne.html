@@ -8,14 +8,12 @@
     <title>pokedex</title>
 </head>
 <body>
-    <h1>Pokédex - Design Moderne</h1>
-    <div id="filter-container">
-        <select id="type-filter">
-            <option value="all">Tous</option>
-            <!-- Les options pour chaque type de Pokémon seront ajoutées par JavaScript -->
-        </select>
+    <h1>Pokédex</h1>
+    <div class="search-bar">
+        <input type="text" id="search" placeholder="Nom/Id/Type">
+        <img id="pikachu" src="./img/pikatchugif.webp" alt="Pikachu">
     </div>
-    <div id="pokedex" class="pokedex"></div>
+    <div class="pokedex" id="pokedex"></div>
     <script src="./js/moderne.js"></script>
 </body>
 </html>
