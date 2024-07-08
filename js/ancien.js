@@ -1,77 +1,85 @@
-// Attend que le DOM soit entièrement chargé
-document.addEventListener("DOMContentLoaded", function() {
-  // Sélection des éléments du DOM nécessaires
-  const searchBar = document.getElementById('search-bar'); // Input de recherche
-  const searchBtn = document.getElementById('search-btn'); // Bouton de recherche (image)
-  const pokemonDetails = document.getElementById('pokemon-details'); // Div pour afficher les détails du Pokémon
+document.addEventListener('DOMContentLoaded', () => {
+    const pokemonDetails = document.getElementById('pokemon-details');
+    const prevBtn = document.getElementById('prev-btn');
+    const nextBtn = document.getElementById('next-btn');
+    const searchBtn = document.getElementById('search-btn');
+    const searchBar = document.getElementById('search-bar');
 
-  // Écouteur d'événement sur le clic du bouton de recherche
-  searchBtn.addEventListener('click', function() {
-      // Récupération de la valeur saisie dans la barre de recherche
-      let searchTerm = searchBar.value.trim().toLowerCase();
+    let currentPokemonId = 1;
+    const maxPokemonId = 151; // Nombre de Pokémon de la première génération
 
-      // Vérification si l'entrée est numérique (ID) ou textuelle (nom)
-      if (!isNaN(searchTerm) && searchTerm !== '') {
-          // Recherche par ID si l'entrée est numérique
-          fetchPokemonById(searchTerm);
-      } else {
-          // Recherche par nom si l'entrée n'est pas numérique
-          fetchPokemonByName(searchTerm);
-      }
-  });
+    function fetchPokemon(id) {
+        fetch(`https://pokeapi.co/api/v2/pokemon/${id}`)
+            .then(response => response.json())
+            .then(data => displayPokemon(data))
+            .catch(error => {
+                console.error("Erreur lors de la récupération des données:", error);
+                pokemonDetails.innerHTML = "<p>Erreur lors du chargement du Pokémon.</p>";
+            });
+    }
 
-  // Fonction asynchrone pour récupérer les détails d'un Pokémon par ID
-  async function fetchPokemonById(id) {
-      try {
-          // Appel à l'API PokeAPI pour obtenir les détails du Pokémon par ID
-          const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`);
-          // Vérification de la réussite de la requête HTTP
-          if (!response.ok) {
-              throw new Error('Pokemon non trouvé');
-          }
-          // Conversion de la réponse en format JSON
-          const data = await response.json();
-          // Affichage des détails du Pokémon récupérés
-          displayPokemonDetails(data);
-      } catch (error) {
-          // En cas d'erreur, affiche un message dans la console et à l'utilisateur
-          console.error('Erreur lors de la récupération du Pokémon par ID:', error);
-          pokemonDetails.innerHTML = '<p>Pokémon non trouvé.</p>'; // Affichage d'un message d'erreur
-      }
-  }
+    function displayPokemon(pokemon) {
+        pokemonDetails.innerHTML = `
+            <img src="${pokemon.sprites.front_default}" alt="${pokemon.name}">
+            <h3>${pokemon.name.charAt(0).toUpperCase() + pokemon.name.slice(1)}</h3>
+            <p>ID: ${pokemon.id}</p>
+            <p>Type: ${pokemon.types.map(type => type.type.name).join(', ')}</p>
+            <p>Poids: ${pokemon.weight / 10} kg</p>
+            <p>Taille: ${pokemon.height / 10} m</p>
+        `;
+        updateNavigationButtons();
+    }
 
-  // Fonction asynchrone pour récupérer les détails d'un Pokémon par nom
-  async function fetchPokemonByName(name) {
-      try {
-          // Appel à l'API PokeAPI pour obtenir les détails du Pokémon par nom
-          const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${name}`);
-          // Vérification de la réussite de la requête HTTP
-          if (!response.ok) {
-              throw new Error('Pokemon non trouvé');
-          }
-          // Conversion de la réponse en format JSON
-          const data = await response.json();
-          // Affichage des détails du Pokémon récupérés
-          displayPokemonDetails(data);
-      } catch (error) {
-          // En cas d'erreur, affiche un message dans la console et à l'utilisateur
-          console.error('Erreur lors de la récupération du Pokémon par nom:', error);
-          pokemonDetails.innerHTML = '<p>Pokémon non trouvé.</p>'; // Affichage d'un message d'erreur
-      }
-  }
+    function updateNavigationButtons() {
+        prevBtn.disabled = currentPokemonId === 1;
+        nextBtn.disabled = currentPokemonId === maxPokemonId;
+    }
 
-  // Fonction pour afficher les détails du Pokémon récupérés
-  function displayPokemonDetails(pokemon) {
-      // Extraction des informations pertinentes du Pokémon
-      const { id, name, sprites } = pokemon;
-      const imageUrl = sprites.front_default; // URL de l'image du Pokémon
-      // Construction du HTML à afficher dans #pokemon-details
-      const html = `
-          <h3>${name.toUpperCase()}</h3>
-          <img src="${imageUrl}" alt="${name}">
-          <p>ID: ${id}</p>
-      `;
-      // Affichage du HTML dans #pokemon-details
-      pokemonDetails.innerHTML = html;
-  }
+    prevBtn.addEventListener('click', () => {
+        if (currentPokemonId > 1) {
+            currentPokemonId--;
+            fetchPokemon(currentPokemonId);
+        }
+    });
+
+    nextBtn.addEventListener('click', () => {
+        if (currentPokemonId < maxPokemonId) {
+            currentPokemonId++;
+            fetchPokemon(currentPokemonId);
+        }
+    });
+
+    searchBtn.addEventListener('click', searchPokemon);
+    searchBar.addEventListener('keyup', (event) => {
+        if (event.key === 'Enter') {
+            searchPokemon();
+        }
+    });
+
+    function searchPokemon() {
+        const searchTerm = searchBar.value.toLowerCase();
+        if (searchTerm === '') return;
+
+        if (!isNaN(searchTerm) && parseInt(searchTerm) >= 1 && parseInt(searchTerm) <= maxPokemonId) {
+            currentPokemonId = parseInt(searchTerm);
+            fetchPokemon(currentPokemonId);
+        } else {
+            fetch(`https://pokeapi.co/api/v2/pokemon/${searchTerm}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.id <= maxPokemonId) {
+                        currentPokemonId = data.id;
+                        displayPokemon(data);
+                    } else {
+                        pokemonDetails.innerHTML = "<p>Ce Pokémon n'est pas de la première génération.</p>";
+                    }
+                })
+                .catch(() => {
+                    pokemonDetails.innerHTML = "<p>Pokémon non trouvé.</p>";
+                });
+        }
+    }
+
+    // Afficher le premier Pokémon au chargement
+    fetchPokemon(currentPokemonId);
 });
