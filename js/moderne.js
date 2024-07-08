@@ -2,6 +2,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const searchInput = document.getElementById('search');
     const pikachu = document.getElementById('pikachu');
     const pokedex = document.getElementById('pokedex');
+    const loader = document.getElementById('loader');
+    const prevPageBtn = document.getElementById('prevPage');
+    const nextPageBtn = document.getElementById('nextPage');
+    const pageInfo = document.getElementById('pageInfo');
+
+    let currentPage = 1;
+    const cardsPerPage = 25;
+    let allPokemon = [];
 
     const typeColors = {
         normal: '#A8A878', feu: '#F08030', eau: '#6890F0', électrik: '#F8D030',
@@ -25,22 +33,22 @@ document.addEventListener('DOMContentLoaded', () => {
         speed: 'Vitesse'
     };
 
+    function showLoader() {
+        loader.style.display = 'flex';
+    }
+
+    function hideLoader() {
+        loader.style.display = 'none';
+    }
+
     function animatePikachuAndSearch() {
         pikachu.src = "./img/pikatchugif.webp";
-        
         const query = searchInput.value.trim();
-        if (query) {
-            searchPokemon(query);
-        } else {
-            displayAllPokemon();
-        }
-
-        setTimeout(() => {
-            pikachu.src = "./img/pikatchu.webp";
-        }, 3000);
+        searchPokemon(query);
     }
 
     async function fetchAllPokemonData() {
+        showLoader();
         let allPokemon = [];
         let nextUrl = 'https://pokeapi.co/api/v2/pokemon?limit=100000&offset=0';
 
@@ -66,12 +74,12 @@ document.addEventListener('DOMContentLoaded', () => {
             updateLoadingProgress(allPokemon.length);
         }
 
+        hideLoader();
         return allPokemon;
     }
 
     function updateLoadingProgress(count) {
         console.log(`Chargement des Pokémon : ${count} chargés`);
-        // Vous pouvez ajouter ici une barre de progression ou un autre indicateur visuel
     }
 
     function createPokemonCard(pokemon) {
@@ -149,18 +157,36 @@ document.addEventListener('DOMContentLoaded', () => {
         return card;
     }
 
-    async function displayAllPokemon() {
-        pokedex.innerHTML = 'Chargement de tous les Pokémon...';
-        const allPokemon = await fetchAllPokemonData();
+    function displayPokemonCards(pokemonList) {
         pokedex.innerHTML = '';
-        allPokemon.forEach(pokemon => {
+        const start = (currentPage - 1) * cardsPerPage;
+        const end = start + cardsPerPage;
+        const pagePokemons = pokemonList.slice(start, end);
+
+        pagePokemons.forEach(pokemon => {
             const card = createPokemonCard(pokemon);
             pokedex.appendChild(card);
         });
+
+        updatePaginationInfo(pokemonList.length);
+    }
+
+    function updatePaginationInfo(totalPokemon) {
+        const totalPages = Math.ceil(totalPokemon / cardsPerPage);
+        pageInfo.textContent = `Page ${currentPage} sur ${totalPages}`;
+        prevPageBtn.disabled = currentPage === 1;
+        nextPageBtn.disabled = currentPage === totalPages;
+    }
+
+    async function displayAllPokemon() {
+        showLoader();
+        allPokemon = await fetchAllPokemonData();
+        displayPokemonCards(allPokemon);
+        hideLoader();
     }
 
     async function searchPokemon(query) {
-        const allPokemon = await fetchAllPokemonData();
+        showLoader();
         const filteredPokemon = allPokemon.filter(pokemon => {
             const nameMatch = pokemon.frenchName.toLowerCase().includes(query.toLowerCase());
             const idMatch = pokemon.id.toString() === query;
@@ -168,11 +194,9 @@ document.addEventListener('DOMContentLoaded', () => {
             return nameMatch || idMatch || typeMatch;
         });
 
-        pokedex.innerHTML = '';
-        filteredPokemon.forEach(pokemon => {
-            const card = createPokemonCard(pokemon);
-            pokedex.appendChild(card);
-        });
+        currentPage = 1;
+        displayPokemonCards(filteredPokemon);
+        hideLoader();
     }
 
     pikachu.addEventListener('click', animatePikachuAndSearch);
@@ -180,6 +204,21 @@ document.addEventListener('DOMContentLoaded', () => {
     searchInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') {
             animatePikachuAndSearch();
+        }
+    });
+
+    prevPageBtn.addEventListener('click', () => {
+        if (currentPage > 1) {
+            currentPage--;
+            displayPokemonCards(allPokemon);
+        }
+    });
+
+    nextPageBtn.addEventListener('click', () => {
+        const totalPages = Math.ceil(allPokemon.length / cardsPerPage);
+        if (currentPage < totalPages) {
+            currentPage++;
+            displayPokemonCards(allPokemon);
         }
     });
 
